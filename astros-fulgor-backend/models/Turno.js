@@ -1,27 +1,24 @@
 const mongoose = require('mongoose');
 
 const turnoSchema = new mongoose.Schema({
-  fecha: {
-    type: String, // Ejemplo: "Lunes", "Martes"
+  nivel: {
+    type: String,
     required: true,
+    enum: ['Principiantes', 'Intermedios', 'Avanzados'], // Limita los valores posibles
+  },
+  dia: {
+    type: String,
+    required: true,
+    enum: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'], // Días de la semana
   },
   hora: {
-    type: String, // Ejemplo: "17:30hs"
-    required: true,
+    type: String,
+    required: true, // Asegura que cada turno tenga una hora
   },
-  nivel: {
-    type: String, // "Blanco", "Azul", "Violeta"
-    required: true,
-  },
-  disponible: {
-    type: Boolean, // Si el turno está disponible para ser reservado
-    default: true,
-  },
-  lugaresDisponibles: {
-    type: Number, // Cantidad de lugares disponibles para el turno
-    default: 10,   // Inicia con 10 lugares
+  cuposDisponibles: {
+    type: Number,
+    default: 10, // Por defecto, 10 lugares disponibles por turno
   },
 });
 
-const Turno = mongoose.model('Turno', turnoSchema);
-module.exports = Turno;
+module.exports = mongoose.model('Turno', turnoSchema);
