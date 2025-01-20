@@ -2,22 +2,23 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const protect = async (req, res, next) => {
-  let token;
+  let token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No autorizado, token no encontrado' });
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-      next();
-    } catch (error) {
-      res.status(401).json({ message: 'No autorizado, token inválido' });
-    }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: 'No autorizado, no se encontró el token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'No autorizado, token inválido' });
   }
 };
 
-module.exports = { protect };
+const admin = (req, res, next) => {
+  if (req.user?.role === 'Admin') {
+    return next();
+  }
+  res.status(403).json({ message: 'Acceso denegado. Solo administradores pueden realizar esta acción.' });
+};
+
+module.exports = { protect, admin };
