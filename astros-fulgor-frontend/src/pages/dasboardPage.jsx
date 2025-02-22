@@ -30,23 +30,63 @@ const Dashboard = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">Dashboard</h2>
+    <div className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Dashboard</h2>
         {user ? (
           <div className="text-center">
-            <p className="text-lg font-semibold">Bienvenido, {user.firstName} {user.lastName}!</p>
+            <p className="text-lg font-semibold text-gray-800 mb-4">Bienvenido, {user.firstName} {user.lastName}!</p>
             <p className="text-gray-600">Email: {user.email}</p>
             <p className="text-gray-600">Rol: {user.role}</p>
-            <button
-              onClick={() => {
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-              className="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600"
-            >
-              Cerrar sesión
-            </button>
+
+            <div className="mt-6 space-y-4">
+              {/* Si el usuario es administrador o profesor */}
+              {["Admin", "Profesor"].includes(user.role) && (
+                <>
+                  <button
+                    onClick={() => navigate("/turnos")}
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    Ver todos los turnos
+                  </button>
+                  <button
+                    onClick={() => navigate("/usuarios")}
+                    className="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+                  >
+                    Ver todos los usuarios
+                  </button>
+                </>
+              )}
+
+              {/* Si el usuario es Avanzado, Intermedio o Principiante */}
+              {["Avanzado", "Intermedio", "Principiante"].includes(user.role) && (
+                <>
+                  <button
+                    onClick={() => navigate(`/turnos-disponibles/${user.role}`)}
+                    className="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  >
+                    Turnos disponibles
+                  </button>
+                  <button
+                    onClick={() => navigate("/perfil")}
+                    className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    Mi usuario
+                  </button>
+                </>
+              )}
+
+              {/* Botón para cerrar sesión */}
+              <button
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  navigate("/login");
+                }}
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+              >
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         ) : (
           <p className="text-center text-gray-600">Cargando...</p>

@@ -74,7 +74,7 @@ const loginUser = async (req, res) => {
       username: user.username,
       email: user.email,
       role: user.role,
-      token: generateToken(user.id),  // Asegúrate de tener el método para generar el token
+      token: generateToken(user.id),  
     });
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
@@ -98,6 +98,7 @@ const getUserProfile = async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      email: user.email,
       creditos: user.creditos,
       turnosTomados: user.turnosTomados,
     });

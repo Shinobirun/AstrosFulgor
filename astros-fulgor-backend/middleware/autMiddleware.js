@@ -15,10 +15,11 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user?.role === 'Admin') {
+  if (req.user?.role === 'Admin' || req.user?.role === 'Profesor') {
     return next();
   }
-  res.status(403).json({ message: 'Acceso denegado. Solo administradores pueden realizar esta acción.' });
+  res.status(403).json({ message: 'Acceso denegado. Solo administradores o profesores pueden realizar esta acción.' });
 };
+
 
 module.exports = { protect, admin };

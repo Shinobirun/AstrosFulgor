@@ -9,6 +9,6 @@ router.post('/login', loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 router.put('/deactivate', protect, desactivarUsuario);
-router.get('/users', protect, admin, getAllUsers);
+router.get('/', protect, admin, getAllUsers);
 
 module.exports = router;

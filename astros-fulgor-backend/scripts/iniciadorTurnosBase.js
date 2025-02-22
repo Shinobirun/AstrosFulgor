@@ -1,22 +1,45 @@
-const Turno = require('../models/Turno'); 
+const Turno = require('../models/Turno');
 
 const inicializarTurnosBase = async () => {
   const turnosBase = [
-    { nivel: 'Principiantes', dia: 'Lunes', hora: '17:30hs' },
-    { nivel: 'Intermedios', dia: 'Lunes', hora: '19:00hs' },
-    { nivel: 'Principiantes', dia: 'Lunes', hora: '20:30hs' },
-    { nivel: 'Avanzados', dia: 'Martes', hora: '17:30hs' },
-    { nivel: 'Intermedios', dia: 'Martes', hora: '19:00hs' },
-    { nivel: 'Intermedios', dia: 'Martes', hora: '20:30hs' },
-    { nivel: 'Intermedios', dia: 'Miércoles', hora: '17:30hs' },
-    { nivel: 'Intermedios', dia: 'Miércoles', hora: '19:00hs' },
-    { nivel: 'Principiantes', dia: 'Miércoles', hora: '20:30hs' },
-    { nivel: 'Avanzados', dia: 'Jueves', hora: '17:30hs' },
-    { nivel: 'Intermedios', dia: 'Jueves', hora: '19:00hs' },
-    { nivel: 'Intermedios', dia: 'Jueves', hora: '20:30hs' },
-    { nivel: 'Intermedios', dia: 'Viernes', hora: '17:30hs' },
-    { nivel: 'Principiantes', dia: 'Viernes', hora: '19:00hs' },
-    { nivel: 'Principiantes', dia: 'Viernes', hora: '20:30hs' },
+    // 📍 Lunes - Palermo
+    { sede: 'Palermo', nivel: 'Principiantes', dia: 'Lunes', hora: '17:30hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Lunes', hora: '19:00hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Principiantes', dia: 'Lunes', hora: '20:30hs', cuposDisponibles: 10 },
+
+    // 📍 Martes - Palermo
+    { sede: 'Palermo', nivel: 'Avanzados', dia: 'Martes', hora: '17:30hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Martes', hora: '19:00hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Martes', hora: '20:30hs', cuposDisponibles: 10 },
+
+    // 📍 Miércoles - Palermo
+    { sede: 'Palermo', nivel: 'Principiantes', dia: 'Miércoles', hora: '17:30hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Miércoles', hora: '19:00hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Principiantes', dia: 'Miércoles', hora: '20:30hs', cuposDisponibles: 10 },
+
+    // 📍 Miércoles - Fulgor
+    { sede: 'Fulgor', nivel: 'Intermedios', dia: 'Miércoles', hora: '17:00hs', cuposDisponibles: 12 },
+    { sede: 'Fulgor', nivel: 'Intermedios', dia: 'Miércoles', hora: '18:30hs', cuposDisponibles: 12 },
+    { sede: 'Fulgor', nivel: 'Avanzados', dia: 'Miércoles', hora: '20:00hs', cuposDisponibles: 12 },
+
+    // 📍 Jueves - Palermo
+    { sede: 'Palermo', nivel: 'Avanzados', dia: 'Jueves', hora: '17:30hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Jueves', hora: '19:00hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Jueves', hora: '20:30hs', cuposDisponibles: 10 },
+
+    // 📍 Viernes - Palermo
+    { sede: 'Palermo', nivel: 'Intermedios', dia: 'Viernes', hora: '17:30hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Principiantes', dia: 'Viernes', hora: '19:00hs', cuposDisponibles: 10 },
+    { sede: 'Palermo', nivel: 'Avanzados', dia: 'Viernes', hora: '20:30hs', cuposDisponibles: 10 },
+
+    // 📍 Viernes - Fulgor
+    { sede: 'Fulgor', nivel: 'Intermedios', dia: 'Viernes', hora: '17:00hs', cuposDisponibles: 12 },
+    { sede: 'Fulgor', nivel: 'Avanzados', dia: 'Viernes', hora: '18:30hs', cuposDisponibles: 12 },
+    { sede: 'Fulgor', nivel: 'Intermedios', dia: 'Viernes', hora: '20:00hs', cuposDisponibles: 12 },
+
+    // 📍 Sábado - Fulgor
+    { sede: 'Fulgor', nivel: 'Principiantes', dia: 'Sábado', hora: '14:00hs', cuposDisponibles: 12 },
+    { sede: 'Fulgor', nivel: 'Avanzados', dia: 'Sábado', hora: '15:30hs', cuposDisponibles: 12 },
   ];
 
   try {
