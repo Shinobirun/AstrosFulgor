@@ -28,7 +28,8 @@ const PerfilPage = () => {
           <div className="text-center">
             <p className="text-lg font-semibold">{user.firstName} {user.lastName}</p>
             <p className="text-gray-600">Email: {user.email}</p>
-            <p className="text-gray-600">Rol: {user.role}</p>
+            <p className="text-gray-600">Nivel: {user.role}</p>
+            <p className="text-lg font-bold text-green-700 mt-2">Créditos: {user.creditos ?? 0}</p>
           </div>
         ) : (
           <p className="text-center text-gray-600">Cargando...</p>

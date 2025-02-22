@@ -11,4 +11,5 @@ router.put('/profile', protect, updateUserProfile);
 router.put('/deactivate', protect, desactivarUsuario);
 router.get('/', protect, admin, getAllUsers);
 
+
 module.exports = router;

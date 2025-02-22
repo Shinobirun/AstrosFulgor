@@ -15,12 +15,12 @@ const userSchema = new mongoose.Schema({
 
 // Comparar contraseñas
 userSchema.methods.matchPassword = async function (enteredPassword) {
-
-  console.log("Contraseña ingresada:", enteredPassword);
-  console.log("Contraseña en la base de datos:", this.password);
-
-  return await bcrypt.compare(enteredPassword, this.password);
- 
+  try {
+    return await bcrypt.compare(enteredPassword, this.password);
+  } catch (error) {
+    console.error("Error al comparar contraseñas:", error);
+    return false;
+  }
 };
 
 // Middleware antes de guardar

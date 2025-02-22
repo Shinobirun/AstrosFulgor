@@ -1,5 +1,7 @@
 const Turno = require('../models/Turno');
 const User = require('../models/User');
+const mongoose = require("mongoose");
+
 
 // Listar turnos disponibles
 const getTurnosDisponibles = async (req, res) => {
@@ -58,15 +60,27 @@ const tomarTurno = async (req, res) => {
       return res.status(400).json({ message: 'Turno ya ocupado' });
     }
 
+    // Verificar si hay cupos disponibles
+    if (turno.cuposDisponibles <= 0) {
+      return res.status(400).json({ message: 'No hay cupos disponibles' });
+    }
+
+    // Marcar el turno como ocupado
     turno.ocupadoPor = req.user.id;
+
+    // Decrementar los cupos disponibles
+    turno.cuposDisponibles -= 1;
+
+    // Guardar los cambios en el turno
     await turno.save();
 
+    // Restar un crédito al usuario
     const user = await User.findById(req.user.id);
     user.creditos -= 1;
     user.turnosTomados.push(turno.id);
     await user.save();
 
-    res.json({ message: 'Turno tomado exitosamente', creditos: user.creditos });
+    res.json({ message: 'Turno tomado exitosamente', creditos: user.creditos, cuposDisponibles: turno.cuposDisponibles });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al tomar turno' });
@@ -74,4 +88,23 @@ const tomarTurno = async (req, res) => {
 };
 
 
-module.exports = { getTurnosDisponibles, liberarTurno, tomarTurno };
+// Obtener los turnos por usuario
+const getTurnosPorUsuario = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('turnosTomados');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (user.turnosTomados.length === 0) {
+      return res.status(404).json({ message: 'El usuario no tiene turnos tomados' });
+    }
+
+    res.json(user.turnosTomados);  // Devuelve los turnos que el usuario ha tomado
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener los turnos del usuario' });
+  }
+};
+
+module.exports = { getTurnosDisponibles, liberarTurno, tomarTurno, getTurnosPorUsuario };
