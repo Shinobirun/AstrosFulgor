@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const inicializarTurnosBase = require('./scripts/iniciadorTurnosBase.js');
+require('./scripts/cronJobs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;

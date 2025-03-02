@@ -24,21 +24,21 @@ const UsuariosPage = () => {
 
   useEffect(() => {
     const fetchTurnos = async () => {
-      if (selectedUser) {
+      if (selectedUser) {  // Aseguramos que hay un usuario seleccionado
         try {
           const token = localStorage.getItem("token");
-          const response = await axios.get("http://localhost:5000/api/turnos/usuario", {
+          const response = await axios.get(`http://localhost:5000/api/turnos/usuario/${selectedUser}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setTurnos(response.data);
         } catch (error) {
-          console.error("Error al obtener los turnos del usuario:", error);
+          console.error("Error al obtener los turnos del usuario seleccionado:", error);
         }
       }
     };
-
+  
     fetchTurnos();
-  }, [selectedUser]);  // Solo se ejecuta cuando el selectedUser cambia
+  }, [selectedUser]);  // Se ejecuta cuando cambia el usuario seleccionado
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

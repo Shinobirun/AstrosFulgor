@@ -2,7 +2,6 @@ const Turno = require('../models/Turno');
 const User = require('../models/User');
 const mongoose = require("mongoose");
 
-
 // Listar turnos disponibles
 const getTurnosDisponibles = async (req, res) => {
   try {
@@ -15,7 +14,6 @@ const getTurnosDisponibles = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los turnos' });
   }
 };
-
 
 // Liberar un turno
 const liberarTurno = async (req, res) => {
@@ -41,7 +39,6 @@ const liberarTurno = async (req, res) => {
     res.status(500).json({ message: 'Error al liberar turno' });
   }
 };
-
 
 // Tomar un turno
 const tomarTurno = async (req, res) => {
@@ -87,24 +84,20 @@ const tomarTurno = async (req, res) => {
   }
 };
 
-
 // Obtener los turnos por usuario
 const getTurnosPorUsuario = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('turnosTomados');
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-
-    if (user.turnosTomados.length === 0) {
-      return res.status(404).json({ message: 'El usuario no tiene turnos tomados' });
-    }
-
-    res.json(user.turnosTomados);  // Devuelve los turnos que el usuario ha tomado
+    const { id } = req.params;  // Obtiene el ID del usuario desde la URL
+    const turnos = await Turno.find({ usuario: id }); // Filtra los turnos por usuario
+    res.json(turnos);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener los turnos del usuario' });
+    res.status(500).json({ message: "Error obteniendo los turnos", error });
   }
 };
 
-module.exports = { getTurnosDisponibles, liberarTurno, tomarTurno, getTurnosPorUsuario };
+module.exports = { 
+  getTurnosDisponibles, 
+  liberarTurno, 
+  tomarTurno, 
+  getTurnosPorUsuario 
+};
