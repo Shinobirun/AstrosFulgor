@@ -1,17 +1,20 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-  password: { type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  role: { type: String, enum: ['Admin', 'Profesor', 'Avanzado', 'Intermedio', 'Principiante'], required: true },
-  creditos: { type: Number, default: 5 },
-  turnosTomados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Turno' }],
-  activo: { type: Boolean, default: true },
-});
+const userSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    password: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    role: { type: String, enum: ['Admin', 'Profesor', 'Avanzado', 'Intermedio', 'Principiante'], required: true },
+    creditos: { type: Number, default: 5 },
+    turnosTomados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Turno' }],
+    activo: { type: Boolean, default: true },
+  },
+  { timestamps: true }  // Esto agrega createdAt y updatedAt automáticamente
+);
 
 // Comparar contraseñas
 userSchema.methods.matchPassword = async function (enteredPassword) {

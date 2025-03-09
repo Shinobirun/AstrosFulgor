@@ -36,7 +36,7 @@ const UsuariosPage = () => {
         }
       }
     };
-  
+
     fetchTurnos();
   }, [selectedUser]);  // Se ejecuta cuando cambia el usuario seleccionado
 
@@ -62,6 +62,9 @@ const UsuariosPage = () => {
                 <p className="text-sm text-gray-600">{user.email}</p>
                 <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
                 <p className="text-sm font-bold text-green-700">Créditos: {user.creditos ?? 0}</p>
+                {/* Mostrar la fecha de creación y actualización */}
+                <p className="text-sm text-gray-600">Creado el: {new Date(user.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-600">Actualizado el: {new Date(user.updatedAt).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
@@ -78,8 +81,9 @@ const UsuariosPage = () => {
             <ul className="mt-4 space-y-2">
               {turnos.map((turno) => (
                 <li key={turno._id} className="p-3 rounded-md border bg-gray-50 shadow-sm">
-                  <p className="font-semibold">{turno.nombre}</p>
-                  <p className="text-sm text-gray-600">Fecha: {turno.fecha}</p>
+                  <p className="font-semibold">{turno.sede} - {turno.nivel}</p>
+                  <p className="text-sm text-gray-600">Día: {turno.dia}</p>
+                  <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
                   <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
                 </li>
               ))}

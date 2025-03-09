@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Usa useNavigate en lugar de useHistory
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    confirmPassword: "", // Nuevo campo para confirmar la contraseña
     firstName: "",
     lastName: "",
-    role: "Principiante", // Valor inicial válido
+    role: "Principiante",
   });
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const navigate = useNavigate(); // Inicializa navigate
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,12 +29,24 @@ const RegisterForm = () => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
+
+    // Verificar si las contraseñas coinciden
+    if (formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/users/register",
         formData
       );
       setSuccessMessage("Usuario registrado con éxito");
+
+      // Redirigir al login después de 5 segundos
+      setTimeout(() => {
+        navigate("/login"); // Redirige al login
+      }, 5000);
     } catch (error) {
       setError(error.response?.data.message || "Error al registrar el usuario");
     }
@@ -44,10 +59,9 @@ const RegisterForm = () => {
           Registro
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Campos del formulario */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Username</label>
             <input
               type="text"
               name="username"
@@ -58,10 +72,9 @@ const RegisterForm = () => {
               placeholder="Ingrese su nombre de usuario"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
               name="email"
@@ -72,10 +85,9 @@ const RegisterForm = () => {
               placeholder="Ingrese su email"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
               name="password"
@@ -86,10 +98,22 @@ const RegisterForm = () => {
               placeholder="Ingrese su contraseña"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Nombre
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Confirmar Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Confirme su contraseña"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nombre</label>
             <input
               type="text"
               name="firstName"
@@ -100,10 +124,9 @@ const RegisterForm = () => {
               placeholder="Ingrese su nombre"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Apellido
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Apellido</label>
             <input
               type="text"
               name="lastName"
@@ -114,10 +137,9 @@ const RegisterForm = () => {
               placeholder="Ingrese su apellido"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Rol
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Rol</label>
             <select
               name="role"
               value={formData.role}
@@ -132,10 +154,12 @@ const RegisterForm = () => {
               <option value="Admin">Administrador</option>
             </select>
           </div>
+
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           {successMessage && (
             <p className="text-green-500 text-sm mt-2">{successMessage}</p>
           )}
+
           <button
             type="submit"
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -88,8 +88,16 @@ const tomarTurno = async (req, res) => {
 const getTurnosPorUsuario = async (req, res) => {
   try {
     const { id } = req.params;  // Obtiene el ID del usuario desde la URL
-    const turnos = await Turno.find({ usuario: id }); // Filtra los turnos por usuario
-    res.json(turnos);
+
+    // Buscar el usuario por ID y populando los turnosTomados con la información completa del turno
+    const usuario = await User.findById(id).populate('turnosTomados'); 
+
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Los turnosTomados ya estarán poblados con los datos completos de los turnos
+    res.json(usuario.turnosTomados);
   } catch (error) {
     res.status(500).json({ message: "Error obteniendo los turnos", error });
   }
