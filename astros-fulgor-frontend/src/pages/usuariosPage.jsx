@@ -22,7 +22,7 @@ const UsuariosPage = () => {
 
         setUsuarios(response.data);
       } catch (error) {
-        console.error("Error al obtener los usuarios:", error);
+        console.error("Error al obtener los usuarios:", error.response?.data || error.message);
       }
     };
 
@@ -47,12 +47,34 @@ const UsuariosPage = () => {
 
         setTurnos(response.data); // Suponiendo que el backend devuelve los turnos en response.data
       } catch (error) {
-        console.error("Error al obtener los turnos:", error);
+        console.error("Error al obtener los turnos:", error.response?.data || error.message);
       }
     };
 
     fetchTurnos();
   }, [selectedUser]); // Se ejecuta cuando cambia el usuario seleccionado
+
+  // Función para liberar un turno
+  const liberarTurno = async (turnoId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No hay token disponible.");
+        return;
+      }
+
+      // Llamamos a la ruta de turnos para liberar el turno
+      const response = await axios.delete(`http://localhost:5000/api/turnos/${turnoId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Actualizamos los turnos después de liberar el turno
+      setTurnos((prevTurnos) => prevTurnos.filter((turno) => turno._id !== turnoId));
+      console.log("Turno liberado correctamente:", response.data);
+    } catch (error) {
+      console.error("Error al liberar el turno:", error.response?.data || error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -102,6 +124,14 @@ const UsuariosPage = () => {
                     <p className="text-sm text-gray-600">Día: {turno.dia}</p>
                     <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
                     <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
+
+                    {/* Botón para liberar turno */}
+                    <button
+                      className="mt-2 text-red-600"
+                      onClick={() => liberarTurno(turno._id)} // Liberamos el turno
+                    >
+                      Liberar Turno
+                    </button>
                   </li>
                 ))}
             </ul>
