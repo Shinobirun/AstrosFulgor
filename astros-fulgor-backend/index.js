@@ -24,7 +24,7 @@ connectDB().then(async () => {
 
 // Rutas
 const userRoutes = require('./routes/userRoutes.js');
-const turnoRoutes = require('./routes/turnoRoutes.js');
+const turnoRoutes = require('./routes/turnoRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/turnos', turnoRoutes);

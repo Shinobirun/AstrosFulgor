@@ -4,15 +4,22 @@ import axios from "axios";
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [turnos, setTurnos] = useState([]);  // Estado para los turnos
+  const [turnos, setTurnos] = useState([]);
 
+  // Obtener lista de usuarios al cargar la página
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/users", {
+        if (!token) {
+          console.error("No hay token disponible.");
+          return;
+        }
+
+        const response = await axios.get("http://localhost:5000/api/users/usuarios", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setUsuarios(response.data);
       } catch (error) {
         console.error("Error al obtener los usuarios:", error);
@@ -22,29 +29,34 @@ const UsuariosPage = () => {
     fetchUsuarios();
   }, []);
 
+  // Obtener los turnos del usuario seleccionado
   useEffect(() => {
     const fetchTurnos = async () => {
-      if (selectedUser) {  // Aseguramos que hay un usuario seleccionado
-        try {
-          const token = localStorage.getItem("token");
-          const response = await axios.get(`http://localhost:5000/api/turnos/usuario/${selectedUser}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setTurnos(response.data);
-        } catch (error) {
-          console.error("Error al obtener los turnos del usuario seleccionado:", error);
+      if (!selectedUser) return; // No buscar si no hay usuario seleccionado
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No hay token disponible.");
+          return;
         }
+
+        const response = await axios.get(`http://localhost:5000/api/users/usuario/${selectedUser._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setTurnos(response.data); // Suponiendo que el backend devuelve los turnos en response.data
+      } catch (error) {
+        console.error("Error al obtener los turnos:", error);
       }
     };
 
     fetchTurnos();
-  }, [selectedUser]);  // Se ejecuta cuando cambia el usuario seleccionado
+  }, [selectedUser]); // Se ejecuta cuando cambia el usuario seleccionado
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-        Lista de Usuarios
-      </h2>
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Lista de Usuarios</h2>
       <div className="max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
         {usuarios.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -52,9 +64,9 @@ const UsuariosPage = () => {
               <div
                 key={user._id}
                 className={`cursor-pointer p-3 rounded-md border shadow-sm ${
-                  selectedUser === user._id ? "bg-blue-200 border-blue-500" : "bg-gray-50"
+                  selectedUser?._id === user._id ? "bg-blue-200 border-blue-500" : "bg-gray-50"
                 }`}
-                onClick={() => setSelectedUser(user._id)}
+                onClick={() => setSelectedUser(user)} // Seleccionamos el usuario
               >
                 <span className="font-semibold">
                   {user.firstName} {user.lastName}
@@ -62,9 +74,9 @@ const UsuariosPage = () => {
                 <p className="text-sm text-gray-600">{user.email}</p>
                 <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
                 <p className="text-sm font-bold text-green-700">Créditos: {user.creditos ?? 0}</p>
-                {/* Mostrar la fecha de creación y actualización */}
-                <p className="text-sm text-gray-600">Creado el: {new Date(user.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-600">Actualizado el: {new Date(user.updatedAt).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-600">
+                  Actualizado el: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "No disponible"}
+                </p>
               </div>
             ))}
           </div>
@@ -75,21 +87,26 @@ const UsuariosPage = () => {
 
       {/* Mostrar los turnos del usuario seleccionado */}
       {selectedUser && (
-        <div className="mt-6">
+        <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
           <h3 className="text-xl font-semibold text-gray-800">Turnos Asignados</h3>
+
           {turnos.length > 0 ? (
             <ul className="mt-4 space-y-2">
-              {turnos.map((turno) => (
-                <li key={turno._id} className="p-3 rounded-md border bg-gray-50 shadow-sm">
-                  <p className="font-semibold">{turno.sede} - {turno.nivel}</p>
-                  <p className="text-sm text-gray-600">Día: {turno.dia}</p>
-                  <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
-                  <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
-                </li>
-              ))}
+              {turnos
+                .filter((turno) => turno.activo) // Solo mostrar turnos activos
+                .map((turno, index) => (
+                  <li key={index} className="p-3 rounded-md border bg-gray-50 shadow-sm">
+                    <p className="font-semibold">
+                      {turno.sede} - {turno.nivel}
+                    </p>
+                    <p className="text-sm text-gray-600">Día: {turno.dia}</p>
+                    <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
+                    <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
+                  </li>
+                ))}
             </ul>
           ) : (
-            <p className="text-center text-gray-600">El usuario no tiene turnos asignados.</p>
+            <p className="text-center text-gray-600">No hay turnos activos asignados.</p>
           )}
         </div>
       )}

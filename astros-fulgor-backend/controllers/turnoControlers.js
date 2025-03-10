@@ -103,9 +103,25 @@ const getTurnosPorUsuario = async (req, res) => {
   }
 };
 
+
+
+// Controlador para obtener el turno por ID
+const getTurnoById = async (req, res) => {
+  try {
+    const turno = await Turno.findById(req.params.id); // Buscar por ID
+    if (!turno) {
+      return res.status(404).json({ message: 'Turno no encontrado' });
+    }
+    res.status(200).json(turno); // Retornar el turno encontrado
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener el turno', error: error.message });
+  }
+};
+
 module.exports = { 
   getTurnosDisponibles, 
   liberarTurno, 
   tomarTurno, 
-  getTurnosPorUsuario 
+  getTurnosPorUsuario,
+  getTurnoById
 };

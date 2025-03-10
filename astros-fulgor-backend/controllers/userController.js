@@ -86,7 +86,10 @@ const loginUser = async (req, res) => {
 // Obtener perfil del usuario
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate({
+      path: 'turnosTomados',
+      select: 'sede nivel dia hora cuposDisponibles activo expiraEn' // Trae estos campos
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -100,10 +103,16 @@ const getUserProfile = async (req, res) => {
       role: user.role,
       email: user.email,
       creditos: user.creditos,
-      turnosTomados: user.turnosTomados,
+      turnosTomados: user.turnosTomados, // Ahora mostrará los detalles completos
+      activo: user.activo,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      token: generateToken(user.id),
     });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener perfil de usuario' });
+    console.error('Error al obtener perfil de usuario:', error);
+    res.status(500).json({ message: 'Error al obtener el perfil del usuario' });
   }
 };
 
