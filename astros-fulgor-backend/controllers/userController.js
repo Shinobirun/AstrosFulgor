@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const Credito= require ('../models/creditos');
 
 // Generar un token JWT
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -31,9 +32,23 @@ const registerUser = async (req, res) => {
       firstName,
       lastName,
       role,
-      creditos: 5,
       activo: true,
     });
+
+    // Crear 5 créditos con vencimiento a 15 días
+    const creditos = [];
+    for (let i = 0; i < 5; i++) {
+      const nuevoCredito = await Credito.create({
+        usuario: user._id,
+        venceEn: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 días desde ahora
+        usado: false,
+      });
+      creditos.push(nuevoCredito._id);
+    }
+
+    // Asociar los créditos al usuario
+    user.creditos = creditos;
+    await user.save();
 
     res.status(201).json({ message: 'Registro exitoso. Por favor, inicia sesión.' });
   } catch (error) {
@@ -89,6 +104,12 @@ const getUserProfile = async (req, res) => {
     const user = await User.findById(req.user.id).populate({
       path: 'turnosTomados',
       select: 'sede nivel dia hora cuposDisponibles activo expiraEn' // Trae estos campos
+    })
+
+    .populate({
+      path: 'creditos',
+      match: { usado: false, venceEn: { $gt: new Date() } }, // Solo los créditos vigentes y no usados
+      select: '_id createdAt venceEn',
     });
 
     if (!user) {

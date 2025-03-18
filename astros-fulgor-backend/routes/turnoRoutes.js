@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Rutas protegidas
 router.get('/', protect, getTurnosDisponibles);   // Listar turnos disponibles
-router.post('/liberar', protect, liberarTurno);   // Liberar un turno
+router.put('/liberar', protect, liberarTurno);   // Liberar un turno
 router.post('/tomar', protect, tomarTurno);       // Tomar un turno
 router.get('/turno/:id', getTurnoById);           // Turno por id
 

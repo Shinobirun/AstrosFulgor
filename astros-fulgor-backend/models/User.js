@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     role: { type: String, enum: ['Admin', 'Profesor', 'Avanzado', 'Intermedio', 'Principiante'], required: true },
-    creditos: { type: Number, default: 5 },
     turnosTomados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Turno' }],
+    creditos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Credito' }],
     activo: { type: Boolean, default: true },
   },
   { timestamps: true }  // Esto agrega createdAt y updatedAt automáticamente
