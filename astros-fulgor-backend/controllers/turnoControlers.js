@@ -118,10 +118,39 @@ const getTurnoById = async (req, res) => {
   }
 };
 
+//Crear turno
+
+const crearTurno = async (req, res) => {
+  try {
+    const { sede, nivel, dia, hora, cuposDisponibles } = req.body;
+
+    // Validaciones básicas
+    if (!sede || !nivel || !dia || !hora || !cuposDisponibles) {
+      return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    }
+
+    // Crear un nuevo turno en la base de datos
+    const nuevoTurno = new Turno({
+      sede,
+      nivel,
+      dia,
+      hora,
+      cuposDisponibles,
+    });
+
+    await nuevoTurno.save();
+    res.status(201).json({ message: "Turno creado con éxito", turno: nuevoTurno });
+  } catch (error) {
+    res.status(500).json({ message: "Error al crear el turno", error: error.message });
+  }
+};
+
 module.exports = { 
   getTurnosDisponibles, 
   liberarTurno, 
   tomarTurno, 
   getTurnosPorUsuario,
-  getTurnoById
+  getTurnoById,
+  crearTurno,  
 };
+

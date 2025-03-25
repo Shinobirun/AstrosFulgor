@@ -35,7 +35,9 @@ const Dashboard = () => {
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Dashboard</h2>
         {user ? (
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-800 mb-4">Bienvenido, {user.firstName} {user.lastName}!</p>
+            <p className="text-lg font-semibold text-gray-800 mb-4">
+              Bienvenido, {user.firstName} {user.lastName}!
+            </p>
             <p className="text-gray-600">Email: {user.email}</p>
             <p className="text-gray-600">Rol: {user.role}</p>
 
@@ -55,6 +57,24 @@ const Dashboard = () => {
                   >
                     Ver todos los usuarios
                   </button>
+                  <button
+                    onClick={() => navigate("/crear-turno")}
+                    className="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  >
+                    Crear Turno
+                  </button>
+                  <button
+                    onClick={() => navigate("/eliminar-turno")}
+                    className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  >
+                    Eliminar Turno
+                  </button>
+                  <button
+                    onClick={() => navigate("/establecer-feriado")}
+                    className="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  >
+                    Establecer Feriado
+                  </button>
                 </>
               )}
 
@@ -67,14 +87,16 @@ const Dashboard = () => {
                   >
                     Turnos disponibles
                   </button>
-                  <button
-                    onClick={() => navigate("/perfil")}
-                    className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                  >
-                    Mi usuario
-                  </button>
                 </>
               )}
+
+              {/* Editar Usuario - Disponible para todos los usuarios */}
+              <button
+                onClick={() => navigate("/editar-usuario")}
+                className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                Editar Usuario
+              </button>
 
               {/* Botón para cerrar sesión */}
               <button

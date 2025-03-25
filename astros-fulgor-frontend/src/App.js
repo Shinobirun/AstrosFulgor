@@ -1,12 +1,25 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import HomePage from "./pages/homePage";
 import RegisterPage from "./pages/registerPage";
 import LoginForm from "./components/forms/loguinForm";
 import Dashboard from "./pages/dasboardPage";
-import TurnosPage from "./pages/turnosPage"; // Nueva página para ver todos los turnos
-import UsuariosPage from "./pages/usuariosPage"; // Nueva página para ver usuarios
-import TurnosDisponiblesPage from "./pages/turnosDisponiblesPage"; // Nueva página para turnos por nivel
-import PerfilPage from "./pages/perfilPage"; // Nueva página para perfil de usuario
+import TurnosPage from "./pages/turnosPage"; 
+import UsuariosPage from "./pages/usuariosPage";
+import TurnosDisponiblesPage from "./pages/turnosDisponiblesPage";
+import PerfilPage from "./pages/perfilPage";
+
+// Componente para proteger rutas que requieren autenticación
+const ProtectedRoute = ({ element, ...rest }) => {
+  const token = localStorage.getItem("token");
+
+  // Si no hay token, redirige a la página de login
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  // Si hay token, muestra el componente protegido
+  return element;
+};
 
 function App() {
   return (
@@ -15,14 +28,17 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/turnos" element={<TurnosPage />} />
-        <Route path="/usuarios" element={<UsuariosPage />} />
-        <Route path="/turnos-disponibles/:nivel" element={<TurnosDisponiblesPage />} />
-        <Route path="/perfil" element={<PerfilPage />} />
+        
+        {/* Rutas protegidas */}
+        <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
+        <Route path="/turnos" element={<ProtectedRoute element={<TurnosPage />} />} />
+        <Route path="/usuarios" element={<ProtectedRoute element={<UsuariosPage />} />} />
+        <Route path="/turnos-disponibles/:nivel" element={<ProtectedRoute element={<TurnosDisponiblesPage />} />} />
+        <Route path="/perfil" element={<ProtectedRoute element={<PerfilPage />} />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+
