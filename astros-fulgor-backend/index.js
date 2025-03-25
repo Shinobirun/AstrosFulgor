@@ -25,9 +25,11 @@ connectDB().then(async () => {
 // Rutas
 const userRoutes = require('./routes/userRoutes.js');
 const turnoRoutes = require('./routes/turnoRoutes');
+const creditoRoutes= require('./routes/creditoRoutes.js');
 
 app.use('/api/users', userRoutes);
 app.use('/api/turnos', turnoRoutes);
+app.use('/api/creditos', creditoRoutes);
 
 // Iniciar Servidor
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
