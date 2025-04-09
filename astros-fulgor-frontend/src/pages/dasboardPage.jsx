@@ -58,7 +58,7 @@ const Dashboard = () => {
                     Ver todos los usuarios
                   </button>
                   <button
-                    onClick={() => navigate("/crear-turno")}
+                    onClick={() => navigate("/crearTurno")}
                     className="w-full bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   >
                     Crear Turno

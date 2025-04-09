@@ -7,6 +7,7 @@ import TurnosPage from "./pages/turnosPage";
 import UsuariosPage from "./pages/usuariosPage";
 import TurnosDisponiblesPage from "./pages/turnosDisponiblesPage";
 import PerfilPage from "./pages/perfilPage";
+import CrearTurno from "./components/forms/crearTurno.jsx";
 
 // Componente para proteger rutas que requieren autenticación
 const ProtectedRoute = ({ element, ...rest }) => {
@@ -35,6 +36,8 @@ function App() {
         <Route path="/usuarios" element={<ProtectedRoute element={<UsuariosPage />} />} />
         <Route path="/turnos-disponibles/:nivel" element={<ProtectedRoute element={<TurnosDisponiblesPage />} />} />
         <Route path="/perfil" element={<ProtectedRoute element={<PerfilPage />} />} />
+        <Route path="/crearTurno" element={<ProtectedRoute element={<CrearTurno />} />} />
+
       </Routes>
     </Router>
   );

@@ -5,13 +5,10 @@ const mongoose = require("mongoose");
 // Listar turnos disponibles
 const getTurnosDisponibles = async (req, res) => {
   try {
-    const turnos = await Turno.find({ ocupadoPor: null }); // Buscamos turnos sin usuario asignado
-    if (!turnos.length) {
-      return res.status(404).json({ message: 'No hay turnos disponibles' });
-    }
-    res.json(turnos);
+    const turnos = await Turno.find({ ocupadoPor: null });
+    res.json(turnos); // Devuelve un array vacío en lugar de un error
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los turnos' });
+    res.status(500).json({ message: 'Error al obtener los turnos', error: error.message });
   }
 };
 
@@ -23,29 +20,37 @@ const liberarTurno = async (req, res) => {
     const turno = await Turno.findById(turnoId);
     if (!turno) return res.status(404).json({ message: 'Turno no encontrado' });
 
-    if (String(turno.ocupadoPor) !== String(req.user.id)) {
+    if (!turno.ocupadoPor.includes(req.user.id)) {
       return res.status(401).json({ message: 'No puedes liberar este turno' });
     }
 
-    turno.ocupadoPor = null;
+    // Eliminar al usuario del array `ocupadoPor`
+    turno.ocupadoPor = turno.ocupadoPor.filter(id => String(id) !== String(req.user.id));
+
     await turno.save();
 
-    const user = await User.findById(req.user.id);
-    user.creditos += 1; // El usuario recibe un crédito por liberar el turno
-    await user.save();
+    // Crear un crédito para el usuario
+    const nuevoCredito = new Credito({ usuario: req.user.id });
+    await nuevoCredito.save();
 
-    res.json({ message: 'Turno liberado exitosamente', creditos: user.creditos });
+    res.json({ 
+      message: 'Turno liberado exitosamente, crédito generado', 
+      cuposOcupados: turno.ocupadoPor.length,
+      cuposDisponibles: turno.cuposDisponibles - turno.ocupadoPor.length
+    });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Error al liberar turno' });
   }
 };
+
 
 // Tomar un turno
 const tomarTurno = async (req, res) => {
   const { turnoId } = req.body;
 
   try {
-    // Asegurarse de que el ID del turno sea válido
     if (!mongoose.Types.ObjectId.isValid(turnoId)) {
       return res.status(400).json({ message: 'ID de turno inválido' });
     }
@@ -53,36 +58,41 @@ const tomarTurno = async (req, res) => {
     const turno = await Turno.findById(turnoId);
     if (!turno) return res.status(404).json({ message: 'Turno no encontrado' });
 
-    if (turno.ocupadoPor) {
-      return res.status(400).json({ message: 'Turno ya ocupado' });
+    if (turno.ocupadoPor.includes(req.user.id)) {
+      return res.status(400).json({ message: 'Ya tienes este turno' });
     }
 
-    // Verificar si hay cupos disponibles
-    if (turno.cuposDisponibles <= 0) {
+    if (turno.ocupadoPor.length >= turno.cuposDisponibles) {
       return res.status(400).json({ message: 'No hay cupos disponibles' });
     }
 
-    // Marcar el turno como ocupado
-    turno.ocupadoPor = req.user.id;
+    // Buscar un crédito disponible
+    const credito = await Credito.findOne({ usuario: req.user.id, usado: false });
 
-    // Decrementar los cupos disponibles
-    turno.cuposDisponibles -= 1;
+    if (!credito) {
+      return res.status(400).json({ message: 'No tienes créditos disponibles' });
+    }
 
-    // Guardar los cambios en el turno
+    // Marcar el crédito como usado y guardar
+    credito.usado = true;
+    await credito.save();
+
+    // Asignar el turno al usuario
+    turno.ocupadoPor.push(req.user.id);
     await turno.save();
 
-    // Restar un crédito al usuario
-    const user = await User.findById(req.user.id);
-    user.creditos -= 1;
-    user.turnosTomados.push(turno.id);
-    await user.save();
+    res.json({ 
+      message: 'Turno tomado exitosamente', 
+      cuposOcupados: turno.ocupadoPor.length,
+      cuposDisponibles: turno.cuposDisponibles - turno.ocupadoPor.length 
+    });
 
-    res.json({ message: 'Turno tomado exitosamente', creditos: user.creditos, cuposDisponibles: turno.cuposDisponibles });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al tomar turno' });
   }
 };
+
 
 // Obtener los turnos por usuario
 const getTurnosPorUsuario = async (req, res) => {
@@ -122,24 +132,28 @@ const getTurnoById = async (req, res) => {
 
 const crearTurno = async (req, res) => {
   try {
-    const { sede, nivel, dia, hora, cuposDisponibles } = req.body;
+    const { sede, nivel, dia, hora } = req.body;
 
-    // Validaciones básicas
-    if (!sede || !nivel || !dia || !hora || !cuposDisponibles) {
+    if (!sede || !nivel || !dia || !hora) {
       return res.status(400).json({ message: "Todos los campos son obligatorios" });
     }
 
-    // Crear un nuevo turno en la base de datos
+    const CUPOS_POR_SEDE = {
+      Palermo: 10,
+      Fulgor: 12
+    };
+
     const nuevoTurno = new Turno({
       sede,
       nivel,
       dia,
       hora,
-      cuposDisponibles,
+      cuposDisponibles: CUPOS_POR_SEDE[sede] || 0, // Se asigna automáticamente
     });
 
     await nuevoTurno.save();
-    res.status(201).json({ message: "Turno creado con éxito", turno: nuevoTurno });
+    res.status(201).json({ message: "Turno creado exitosamente", turno: nuevoTurno });
+
   } catch (error) {
     res.status(500).json({ message: "Error al crear el turno", error: error.message });
   }

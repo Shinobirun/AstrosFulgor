@@ -9,12 +9,19 @@ const CrearTurno = () => {
     nivel: "Principiantes",
     dia: "Lunes",
     hora: "",
-    cuposDisponibles: "",
+    cuposDisponibles: 10, // Se agregó este campo
+    ocupadoPor: [], // Inicialmente vacío
+    activo: true,
   });
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === "cuposDisponibles" ? Number(value) : value, // Convierte cuposDisponibles a número
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -23,9 +30,9 @@ const CrearTurno = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post("http://localhost:5000/api/turnos", formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }, // Token para autenticación
       });
-      navigate("/turnos"); // Redirige a la lista de turnos después de crear uno
+      navigate("/turnos"); // Redirige a la lista de turnos
     } catch (err) {
       setError("Error al crear el turno. Verifica los datos.");
     }
@@ -37,6 +44,7 @@ const CrearTurno = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">Crear Turno</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Sede */}
           <label className="block">
             <span className="text-gray-700">Sede:</span>
             <select
@@ -49,6 +57,8 @@ const CrearTurno = () => {
               <option value="Fulgor">Fulgor</option>
             </select>
           </label>
+
+          {/* Nivel */}
           <label className="block">
             <span className="text-gray-700">Nivel:</span>
             <select
@@ -62,6 +72,8 @@ const CrearTurno = () => {
               <option value="Avanzados">Avanzados</option>
             </select>
           </label>
+
+          {/* Día */}
           <label className="block">
             <span className="text-gray-700">Día:</span>
             <select
@@ -70,11 +82,15 @@ const CrearTurno = () => {
               onChange={handleChange}
               className="block w-full mt-1 border-gray-300 rounded-md"
             >
-              {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map((dia) => (
-                <option key={dia} value={dia}>{dia}</option>
+              {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((dia) => (
+                <option key={dia} value={dia}>
+                  {dia}
+                </option>
               ))}
             </select>
           </label>
+
+          {/* Hora */}
           <label className="block">
             <span className="text-gray-700">Hora:</span>
             <input
@@ -86,6 +102,8 @@ const CrearTurno = () => {
               className="block w-full mt-1 border-gray-300 rounded-md"
             />
           </label>
+
+          {/* Cupos Disponibles */}
           <label className="block">
             <span className="text-gray-700">Cupos Disponibles:</span>
             <input
@@ -93,10 +111,13 @@ const CrearTurno = () => {
               name="cuposDisponibles"
               value={formData.cuposDisponibles}
               onChange={handleChange}
+              min="1"
               required
               className="block w-full mt-1 border-gray-300 rounded-md"
             />
           </label>
+
+          {/* Botón */}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600"
