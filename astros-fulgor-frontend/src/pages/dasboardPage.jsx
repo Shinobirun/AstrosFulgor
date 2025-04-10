@@ -64,7 +64,7 @@ const Dashboard = () => {
                     Crear Turno
                   </button>
                   <button
-                    onClick={() => navigate("/eliminar-turno")}
+                    onClick={() => navigate("/EliminarTurno")}
                     className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   >
                     Eliminar Turno

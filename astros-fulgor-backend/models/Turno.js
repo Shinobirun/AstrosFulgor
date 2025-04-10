@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 
-const CUPOS_POR_SEDE = {
-  Palermo: 10,
-  Fulgor: 15
-};
-
 const turnoSchema = new mongoose.Schema({
   sede: {
     type: String,
@@ -34,6 +29,7 @@ const turnoSchema = new mongoose.Schema({
   cuposDisponibles: {
     type: Number,
     required: true,
+    min: [1, 'Debe haber al menos 1 cupo disponible'], // Validación de mínimo 1
   },
   ocupadoPor: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -45,11 +41,8 @@ const turnoSchema = new mongoose.Schema({
   }
 });
 
-// 🔥 **Asignar cupos automáticamente según la sede antes de guardar**
+//  **Validar que los ocupantes no superen los cupos disponibles antes de guardar**
 turnoSchema.pre('save', function (next) {
-  if (!this.cuposDisponibles) {
-    this.cuposDisponibles = CUPOS_POR_SEDE[this.sede] || 0;
-  }
   if (this.ocupadoPor.length > this.cuposDisponibles) {
     return next(new Error('La cantidad de usuarios no puede exceder los cupos disponibles'));
   }
@@ -57,4 +50,3 @@ turnoSchema.pre('save', function (next) {
 });
 
 module.exports = mongoose.model('Turno', turnoSchema);
-

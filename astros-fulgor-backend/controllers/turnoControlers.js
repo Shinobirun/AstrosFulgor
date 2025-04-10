@@ -159,6 +159,36 @@ const crearTurno = async (req, res) => {
   }
 };
 
+
+// Obtener todos los turnos
+const getTodosLosTurnos = async (req, res) => {
+  try {
+    const turnos = await Turno.find(); // Obtiene todos los turnos
+    res.json(turnos);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener los turnos", error: error.message });
+  }
+};
+
+
+// Eliminar un turno
+const eliminarTurno = async (req, res) => {
+  try {
+    if (!['Admin', 'Profesor'].includes(req.user.role)) {
+      return res.status(403).json({ message: "No tienes permiso para eliminar turnos" });
+    }
+
+    const { id } = req.params;
+    const turnoEliminado = await Turno.findByIdAndDelete(id);
+    if (!turnoEliminado) {
+      return res.status(404).json({ message: "Turno no encontrado" });
+    }
+    res.json({ message: "Turno eliminado correctamente" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar el turno", error: error.message });
+  }
+};
+
 module.exports = { 
   getTurnosDisponibles, 
   liberarTurno, 
@@ -166,5 +196,7 @@ module.exports = {
   getTurnosPorUsuario,
   getTurnoById,
   crearTurno,  
+  getTodosLosTurnos,
+  eliminarTurno
 };
 
