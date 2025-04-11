@@ -44,15 +44,26 @@ export default function TurnosList() {
   // Función para eliminar un turno y actualizar la lista
   const eliminarTurno = async () => {
     if (!turnoSeleccionado) return;
-
+  
     console.log("Intentando eliminar el turno:", turnoSeleccionado);
-
+  
     try {
-      await axios.delete(`http://localhost:5000/api/turnos/${turnoSeleccionado._id}`);
+      const token = localStorage.getItem("token"); // Obtiene el token del almacenamiento
+      if (!token) {
+        console.error("No hay token disponible");
+        return;
+      }
+  
+      await axios.delete(`http://localhost:5000/api/turnos/${turnoSeleccionado._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Enviamos el token en la cabecera
+        },
+      });
+  
       setDialogOpen(false);
       cargarTurnos(); // Recargar la lista de turnos después de eliminar
     } catch (error) {
-      console.error("Error al eliminar el turno:", error);
+      console.error("Error al eliminar el turno:", error.response?.data || error.message);
     }
   };
 

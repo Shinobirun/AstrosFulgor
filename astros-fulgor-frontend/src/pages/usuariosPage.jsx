@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import dayjs from "dayjs";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [turnos, setTurnos] = useState([]);
+  const [creditos, setCreditos] = useState([]);
 
   useEffect(() => {
     const fetchUsuarios = async () => {
@@ -49,7 +51,28 @@ const UsuariosPage = () => {
       }
     };
 
+    const fetchCreditos = async () => {
+      if (!selectedUser) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No hay token disponible.");
+          return;
+        }
+
+        const response = await axios.get(`http://localhost:5000/api/creditos/usuario/${selectedUser._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setCreditos(response.data);
+      } catch (error) {
+        console.error("Error al obtener los créditos:", error.response?.data || error.message);
+      }
+    };
+
     fetchTurnos();
+    fetchCreditos();
   }, [selectedUser]);
 
   const liberarTurno = async (turnoId) => {
@@ -90,9 +113,10 @@ const UsuariosPage = () => {
                 </span>
                 <p className="text-sm text-gray-600">{user.email}</p>
                 <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
-                <p className="text-sm font-bold text-green-700">Créditos: {user.creditos ?? 0}</p>
                 <p className="text-sm text-gray-600">Creado: {new Date(user.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-red-600">Vence: {user.expiresAt ? new Date(user.expiresAt).toLocaleDateString() : "No disponible"}</p>
+                <p className="text-sm text-gray-600">
+                  Última Modificación: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "No disponible"}
+                </p>
               </div>
             ))}
           </div>
@@ -102,28 +126,55 @@ const UsuariosPage = () => {
       </div>
 
       {selectedUser && (
-        <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
-          <h3 className="text-xl font-semibold text-gray-800">Turnos Asignados</h3>
-          {turnos.length > 0 ? (
-            <ul className="mt-4 space-y-2">
-              {turnos.filter((turno) => turno.activo).map((turno, index) => (
-                <li key={index} className="p-3 rounded-md border bg-gray-50 shadow-sm">
-                  <p className="font-semibold">
-                    {turno.sede} - {turno.nivel}
-                  </p>
-                  <p className="text-sm text-gray-600">Día: {turno.dia}</p>
-                  <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
-                  <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
-                  <button className="mt-2 text-red-600" onClick={() => liberarTurno(turno._id)}>
-                    Liberar Turno
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-center text-gray-600">No hay turnos activos asignados.</p>
-          )}
-        </div>
+        <>
+          <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
+            <h3 className="text-xl font-semibold text-gray-800">Turnos Asignados</h3>
+            {turnos.length > 0 ? (
+              <ul className="mt-4 space-y-2">
+                {turnos.filter((turno) => turno.activo).map((turno, index) => (
+                  <li key={index} className="p-3 rounded-md border bg-gray-50 shadow-sm">
+                    <p className="font-semibold">
+                      {turno.sede} - {turno.nivel}
+                    </p>
+                    <p className="text-sm text-gray-600">Día: {turno.dia}</p>
+                    <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
+                    <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
+                    <button className="mt-2 text-red-600" onClick={() => liberarTurno(turno._id)}>
+                      Liberar Turno
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-center text-gray-600">No hay turnos activos asignados.</p>
+            )}
+          </div>
+
+          {/* Tabla de Créditos */}
+          <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
+            <h3 className="text-xl font-semibold text-gray-800">Créditos del Usuario</h3>
+            {creditos.length > 0 ? (
+              <table className="w-full mt-4 border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="border p-2">Día</th>
+                    <th className="border p-2">Fecha de Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {creditos.map((credito, index) => (
+                    <tr key={credito._id} className="text-center">
+                      <td className="border p-2">Día {index + 1}</td>
+                      <td className="border p-2">{dayjs(credito.venceEn).format("DD/MM/YYYY")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-center text-gray-600">No hay créditos disponibles.</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
