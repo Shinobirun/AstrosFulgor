@@ -64,7 +64,7 @@ const Dashboard = () => {
                     Crear Turno
                   </button>
                   <button
-                    onClick={() => navigate("/EliminarTurno")}
+                    onClick={() => navigate("/eliminarTurno")}
                     className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   >
                     Eliminar Turno
@@ -75,19 +75,27 @@ const Dashboard = () => {
                   >
                     Establecer Feriado
                   </button>
+                  {/* Nuevo botón para asignar turnos */}
+                  <button
+                    onClick={() => {
+                      navigate("/asignarTurno");
+                      console.log("Navegando a asignar turno");
+                    }}
+                    className="w-full bg-cyan-500 text-white py-2 px-4 rounded-md hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  >
+                    Asignar Turno a Usuario
+                  </button>
                 </>
               )}
 
               {/* Si el usuario es Avanzado, Intermedio o Principiante */}
               {["Avanzado", "Intermedio", "Principiante"].includes(user.role) && (
-                <>
-                  <button
-                    onClick={() => navigate(`/turnos-disponibles/${user.role}`)}
-                    className="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  >
-                    Turnos disponibles
-                  </button>
-                </>
+                <button
+                  onClick={() => navigate(`/turnos-disponibles/${user.role}`)}
+                  className="w-full bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
+                  Turnos disponibles
+                </button>
               )}
 
               {/* Editar Usuario - Disponible para todos los usuarios */}

@@ -157,14 +157,14 @@ const UsuariosPage = () => {
               <table className="w-full mt-4 border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-gray-200">
-                    <th className="border p-2">Día</th>
+                    <th className="border p-2">Crédito</th>
                     <th className="border p-2">Fecha de Vencimiento</th>
                   </tr>
                 </thead>
                 <tbody>
                   {creditos.map((credito, index) => (
                     <tr key={credito._id} className="text-center">
-                      <td className="border p-2">Día {index + 1}</td>
+                      <td className="border p-2">Crédito {index + 1}</td>
                       <td className="border p-2">{dayjs(credito.venceEn).format("DD/MM/YYYY")}</td>
                     </tr>
                   ))}

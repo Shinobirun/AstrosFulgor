@@ -1,24 +1,28 @@
 const express = require('express');
-const { 
-  getTurnosDisponibles, 
-  liberarTurno, 
-  tomarTurno, 
-  getTurnoById, 
-  crearTurno,  
-  getTodosLosTurnos, 
-  eliminarTurno 
+const {
+  getTurnosDisponibles,
+  liberarTurno,
+  tomarTurno,
+  getTurnoById,
+  crearTurno,
+  getTodosLosTurnos,
+  eliminarTurno,
+  asignarTurnoManual
 } = require('../controllers/turnoControlers');
+
 const { protect, adminOrProfesor } = require('../middleware/autMiddleware');
 
 const router = express.Router();
 
-// Rutas protegidas
-router.get('/', protect, getTurnosDisponibles);   // Listar turnos disponibles
-router.post('/', protect, crearTurno);            // Crear un nuevo turno
-router.put('/liberar', protect, liberarTurno);    // Liberar un turno
-router.post('/tomar', protect, tomarTurno);       // Tomar un turno
-router.get('/turno/:id', getTurnoById);           // Obtener turno por ID
-router.get('/todos', getTodosLosTurnos);          // Obtener todos los turnos
-router.delete('/:id', protect, adminOrProfesor, eliminarTurno);  // Eliminar turno (solo admins y profesores)
+// ✅ Rutas accesibles para cualquier usuario logueado
+router.get('/', protect, getTurnosDisponibles);       // Ver turnos disponibles
+router.get('/turno/:id', protect, getTurnoById);      // Ver un turno específico
+
+// 🔒 Rutas solo para Admins o Profesores
+router.get('/todos', protect, adminOrProfesor, getTodosLosTurnos);  // Ver todos los turnos
+router.post('/', protect, adminOrProfesor, crearTurno);             // Crear nuevo turno
+router.put('/liberar', protect, adminOrProfesor, liberarTurno);     // Liberar un turno
+router.post('/asignar', protect, adminOrProfesor, asignarTurnoManual);        // Tomar un turno
+router.delete('/:id', protect, adminOrProfesor, eliminarTurno);     // Eliminar un turno
 
 module.exports = router;

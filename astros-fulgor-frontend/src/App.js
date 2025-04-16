@@ -8,10 +8,11 @@ import UsuariosPage from "./pages/usuariosPage";
 import TurnosDisponiblesPage from "./pages/turnosDisponiblesPage";
 import PerfilPage from "./pages/perfilPage";
 import CrearTurno from "./components/forms/crearTurno.jsx";
-import EliminarTurno from "./components/forms/eliminarTurno.jsx"
+import EliminarTurno from "./components/forms/eliminarTurno.jsx";
+import AsignarTurno from "./components/forms/asignarTurno.jsx";
 
 // Componente para proteger rutas que requieren autenticación
-const ProtectedRoute = ({ element, ...rest }) => {
+const ProtectedRoute = ({ element }) => {
   const token = localStorage.getItem("token");
 
   // Si no hay token, redirige a la página de login
@@ -30,7 +31,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+
         {/* Rutas protegidas */}
         <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
         <Route path="/turnos" element={<ProtectedRoute element={<TurnosPage />} />} />
@@ -39,11 +40,10 @@ function App() {
         <Route path="/perfil" element={<ProtectedRoute element={<PerfilPage />} />} />
         <Route path="/crearTurno" element={<ProtectedRoute element={<CrearTurno />} />} />
         <Route path="/eliminarTurno" element={<ProtectedRoute element={<EliminarTurno />} />} />
-
+        <Route path="/asignarTurno" element={<ProtectedRoute element={<AsignarTurno />} />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
