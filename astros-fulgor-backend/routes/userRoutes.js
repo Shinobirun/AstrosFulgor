@@ -1,7 +1,7 @@
 const express = require('express');
 const { registerUser, loginUser, getUserProfile, updateUserProfile, desactivarUsuario, getAllUsers } = require('../controllers/userController');
 const { protect, adminOrProfesor, admin, userAccess } = require('../middleware/autMiddleware');
-const { getTurnosPorUsuario } = require("../controllers/turnoControlers");
+const { getTurnosPorUsuario } = require("../controllers/turnoControlersMensual");
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const turnoSchema = new mongoose.Schema({
+const turnoMensualSchema = new mongoose.Schema({
   sede: {
     type: String,
     required: true,
@@ -9,7 +9,7 @@ const turnoSchema = new mongoose.Schema({
   nivel: {
     type: String,
     required: true,
-    enum: ['Principiantes', 'Intermedios', 'Avanzados'],
+    enum: ['Blanco', 'Azul', 'Violeta'],
   },
   dia: {
     type: String,
@@ -42,11 +42,11 @@ const turnoSchema = new mongoose.Schema({
 });
 
 //  **Validar que los ocupantes no superen los cupos disponibles antes de guardar**
-turnoSchema.pre('save', function (next) {
+turnoMensualSchema.pre('save', function (next) {
   if (this.ocupadoPor.length > this.cuposDisponibles) {
     return next(new Error('La cantidad de usuarios no puede exceder los cupos disponibles'));
   }
   next();
 });
 
-module.exports = mongoose.model('Turno', turnoSchema);
+module.exports = mongoose.model('TurnoMensual', turnoMensualSchema);

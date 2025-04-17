@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
 export default function TurnosList() {
   const [turnos, setTurnos] = useState([]);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filtroDia, setFiltroDia] = useState("Todos");
   const navigate = useNavigate();
 
-  // Mapeo de días a números para ordenarlos correctamente
   const diasSemana = {
     "Lunes": 1,
     "Martes": 2,
@@ -20,9 +19,13 @@ export default function TurnosList() {
     "Domingo": 7
   };
 
-  // Función para cargar los turnos desde la API
   const cargarTurnos = () => {
-    axios.get("http://localhost:5000/api/turnos/todos")
+    const token = localStorage.getItem("token");
+    axios.get("http://localhost:5000/api/turnos/todos", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => {
         const turnosOrdenados = response.data.sort((a, b) => {
           const diaA = diasSemana[a.dia] || 8;
@@ -33,44 +36,62 @@ export default function TurnosList() {
         });
         setTurnos(turnosOrdenados);
       })
-      .catch((error) => console.error("Error cargando turnos:", error));
+      .catch((error) =>
+        console.error("Error cargando turnos:", error.response?.data || error.message)
+      );
   };
 
-  // Cargar turnos cuando se monta el componente
   useEffect(() => {
     cargarTurnos();
   }, []);
 
-  // Función para eliminar un turno y actualizar la lista
   const eliminarTurno = async () => {
     if (!turnoSeleccionado) return;
-  
-    console.log("Intentando eliminar el turno:", turnoSeleccionado);
-  
+
     try {
-      const token = localStorage.getItem("token"); // Obtiene el token del almacenamiento
+      const token = localStorage.getItem("token");
       if (!token) {
         console.error("No hay token disponible");
         return;
       }
-  
+
       await axios.delete(`http://localhost:5000/api/turnos/${turnoSeleccionado._id}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Enviamos el token en la cabecera
+          Authorization: `Bearer ${token}`,
         },
       });
-  
+
       setDialogOpen(false);
-      cargarTurnos(); // Recargar la lista de turnos después de eliminar
+      cargarTurnos();
     } catch (error) {
       console.error("Error al eliminar el turno:", error.response?.data || error.message);
     }
   };
 
+  const turnosFiltrados = filtroDia === "Todos"
+    ? turnos
+    : turnos.filter(turno => turno.dia === filtroDia);
+
   return (
     <div className="p-6">
       <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-4">
         <h2 className="text-xl font-bold mb-4 text-center">Lista de Turnos</h2>
+
+        {/* Filtro por día */}
+        <div className="mb-4 text-center">
+          <label className="mr-2 font-semibold">Filtrar por día:</label>
+          <select
+            value={filtroDia}
+            onChange={(e) => setFiltroDia(e.target.value)}
+            className="border border-gray-300 rounded px-2 py-1"
+          >
+            <option value="Todos">Todos</option>
+            {Object.keys(diasSemana).map((dia) => (
+              <option key={dia} value={dia}>{dia}</option>
+            ))}
+          </select>
+        </div>
+
         <table className="w-full border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
@@ -81,7 +102,7 @@ export default function TurnosList() {
             </tr>
           </thead>
           <tbody>
-            {turnos.map((turno) => (
+            {turnosFiltrados.map((turno) => (
               <tr key={turno._id} className="hover:bg-gray-100">
                 <td className="border p-2 text-center">{turno.dia}</td>
                 <td className="border p-2 text-center">{turno.sede}</td>
@@ -112,12 +133,16 @@ export default function TurnosList() {
             <p className="text-center text-gray-600">Sede: {turnoSeleccionado?.sede}</p>
             <p className="text-center text-gray-600">Hora: {turnoSeleccionado?.hora}</p>
             <div className="flex justify-center gap-4 mt-4">
-              <button className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                onClick={() => setDialogOpen(false)}>
+              <button
+                className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancelar
               </button>
-              <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                onClick={eliminarTurno}>
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                onClick={eliminarTurno}
+              >
                 Sí, eliminar
               </button>
             </div>

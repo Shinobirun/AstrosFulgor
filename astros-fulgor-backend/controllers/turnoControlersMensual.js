@@ -1,22 +1,23 @@
-const Turno = require('../models/Turno');
+const Turno = require('../models/TurnoMensual');
 const User = require('../models/User');
 const Credito = require('../models/creditos');
 const mongoose = require("mongoose");
 
-// Listar turnos disponibles
+// Listar turnos disponibles (modificado para considerar los turnos con cupos restantes)
 const getTurnosDisponibles = async (req, res) => {
   try {
-    const turnos = await Turno.find({ ocupadoPor: null });
-    res.json(turnos); // Devuelve un array vacío en lugar de un error
+    const turnos = await Turno.find({
+      $expr: { $lt: [{ $size: '$ocupadoPor' }, '$cuposDisponibles'] },
+      activo: true // opcional, si solo querés los activos
+    });
+    res.json(turnos);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener los turnos', error: error.message });
   }
 };
 
-// Liberar un turno
 const liberarTurno = async (req, res) => {
   const { turnoId, userId } = req.body;
-
   const esAdminOProfesor = ['Admin', 'Profesor'].includes(req.user.role);
 
   if (userId && !esAdminOProfesor) {
@@ -37,24 +38,31 @@ const liberarTurno = async (req, res) => {
       return res.status(400).json({ message: 'El usuario no tenía este turno asignado' });
     }
 
-    // Liberar el turno
+    // Eliminar al usuario del turno
     turno.ocupadoPor = turno.ocupadoPor.filter(uid => uid.toString() !== idUsuario.toString());
+
+    // Aumentar el cupo disponible
+    turno.cuposDisponibles += 1;
+
     await turno.save();
 
-    // Devolver el crédito al usuario
-    await Credito.create({ usuario: idUsuario, usado: false });
+    // Eliminar el turno del usuario
+    const user = await User.findById(idUsuario);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-    res.json({
-      message: 'Turno liberado exitosamente',
-      cuposOcupados: turno.ocupadoPor.length,
-      cuposDisponibles: turno.cuposDisponibles - turno.ocupadoPor.length
-    });
+    user.turnosTomados = user.turnosTomados.filter(tid => tid.toString() !== turnoId);
+    await user.save();
 
+    res.status(200).json({ message: 'Turno liberado correctamente' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error al liberar turno' });
+    res.status(500).json({ message: 'Error al liberar el turno' });
   }
 };
+
+
 
 
 
@@ -220,7 +228,7 @@ const asignarTurnoManual = async (req, res) => {
       return res.status(400).json({ message: 'ID de turno o usuario inválido' });
     }
 
-    // Buscar el turno
+    // Buscar el turno en la base de datos
     const turno = await Turno.findById(turnoId);
     if (!turno) return res.status(404).json({ message: 'Turno no encontrado' });
 
@@ -234,37 +242,39 @@ const asignarTurnoManual = async (req, res) => {
       return res.status(400).json({ message: 'No hay cupos disponibles para este turno' });
     }
 
-    // Asignar el turno
+    // Asignar el turno al turno
     turno.ocupadoPor.push(userId);
 
-    // Reducir un cupo disponible
+    // Restar un cupo disponible
     turno.cuposDisponibles -= 1;
 
-    // Guardar el turno
-    await turno.save();
+    // Guardar los cambios en la base de datos
+    const updatedTurno = await turno.save(); // Asegurarse de que el objeto guardado sea el actualizado
 
-    // Ahora, actualizamos al usuario agregando el ID del turno en 'turnosTomados'
+    // Agregar el turno al usuario
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-    // Añadir el ID del turno a los turnos tomados del usuario
-    user.turnosTomados.push(turnoId);
+    // Asegurarse de que el turno no esté duplicado en el array de turnosTomados del usuario
+    if (!user.turnosTomados.includes(turnoId)) {
+      user.turnosTomados.push(turnoId);
+      await user.save();
+    }
 
-    // Guardar al usuario con el nuevo turno asignado
-    await user.save();
-
-    res.json({
+    // Responder con éxito
+    res.json({ 
       message: 'Turno asignado manualmente con éxito',
-      cuposOcupados: turno.ocupadoPor.length,
-      cuposDisponibles: turno.cuposDisponibles,
-      turnosTomados: user.turnosTomados
+      turno: updatedTurno, // Opcional: incluir la información del turno actualizado
+      cuposDisponibles: updatedTurno.cuposDisponibles
     });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Error al asignar turno manualmente', error: error.message });
   }
 };
+
 
 
 

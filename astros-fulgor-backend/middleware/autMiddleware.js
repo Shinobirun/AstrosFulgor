@@ -25,29 +25,30 @@ const protect = async (req, res, next) => {
     next(); // Continuar con la siguiente función
   } catch (error) {
     console.error('Error en autenticación:', error.message);
-    res.status(401).json({ message: 'No autorizado, token inválido' });
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Token inválido' });
+    } else if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expirado' });
+    }
+    res.status(500).json({ message: 'Error en la autenticación', error: error.message });
   }
+};
+
+// Función genérica para verificar roles
+const checkRole = (roles) => {
+  return (req, res, next) => {
+    if (roles.includes(req.user?.role)) {
+      return next();
+    }
+    res.status(403).json({ message: 'Acceso denegado. Rol insuficiente.' });
+  };
 };
 
 // Middleware para verificar si el usuario tiene rol Admin o Profesor
-const adminOrProfesor = (req, res, next) => {
-  console.log(`Verificando rol: ${req.user?.role}`); // Log para depuración
-
-  if (req.user?.role === 'Admin' || req.user?.role === 'Profesor') {
-    return next(); // Continuar si es Admin o Profesor
-  }
-  res.status(403).json({ message: 'Acceso denegado. Solo administradores o profesores pueden realizar esta acción.' });
-};
+const adminOrProfesor = checkRole(['Admin', 'Profesor']);
 
 // Middleware para verificar si el usuario es Admin
-const admin = (req, res, next) => {
-  console.log(`Verificando si es Admin: ${req.user?.role}`); // Log para depuración
-
-  if (req.user?.role === 'Admin') {
-    return next(); // Continuar si es Admin
-  }
-  res.status(403).json({ message: 'Acceso denegado. Solo administradores pueden realizar esta acción.' });
-};
+const admin = checkRole(['Admin']);
 
 // Middleware para verificar si el usuario puede acceder a su propio perfil o turnos
 const userAccess = (req, res, next) => {

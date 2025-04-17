@@ -8,7 +8,7 @@ const {
   getTodosLosTurnos,
   eliminarTurno,
   asignarTurnoManual
-} = require('../controllers/turnoControlers');
+} = require('../controllers/turnoControlersMensual');
 
 const { protect, adminOrProfesor } = require('../middleware/autMiddleware');
 

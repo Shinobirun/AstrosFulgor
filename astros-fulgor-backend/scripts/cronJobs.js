@@ -1,29 +1,25 @@
 const cron = require('node-cron');
-const mongoose = require('mongoose');
-const moment = require('moment-timezone'); // Asegúrate de instalar moment-timezone
-const User = require('../models/User'); // Ajusta la ruta según tu estructura
+const TurnoActual = require('../models/turnoActual');
+const TurnoMensual = require('../models/TurnoMensual');
 
-// Conectarse a la base de datos si es necesario (evitar errores de conexión)
-if (mongoose.connection.readyState === 0) {
-  mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('📡 Conectado a la base de datos'))
-    .catch(err => console.error('❌ Error al conectar con MongoDB:', err));
-}
-
-// Programar la limpieza de créditos el último día del mes a las 23:00 hs
-cron.schedule('0 23 28-31 * *', async () => {
+cron.schedule('0 0 * * 0', async () => { // Esto se ejecuta cada domingo a las 00:00
   try {
-    const today = moment().tz('America/Argentina/Buenos_Aires'); // Configura tu zona horaria
-    const lastDay = today.clone().endOf('month').date(); // Último día del mes
+    // Borrar los turnos actuales de la semana
+    await TurnoActual.deleteMany();
 
-    if (today.date() === lastDay) {
-      console.log('🧹 Limpiando créditos de todos los usuarios...');
-
-      await User.updateMany({}, { creditos: 0 });
-
-      console.log('✅ Créditos eliminados correctamente.');
+    // Crear nuevos turnos actuales basados en los turnos mensuales
+    const turnosMensuales = await TurnoMensual.find();
+    for (const turnoMensual of turnosMensuales) {
+      const nuevoTurnoActual = new TurnoActual({
+        turnoMensualId: turnoMensual._id,
+        cuposDisponibles: turnoMensual.cuposDisponibles,
+        activo: turnoMensual.activo,
+      });
+      await nuevoTurnoActual.save();
     }
+
+    console.log('Turnos actuales reseteados correctamente');
   } catch (error) {
-    console.error('❌ Error al limpiar créditos:', error);
+    console.error('Error al resetear los turnos actuales', error);
   }
 });

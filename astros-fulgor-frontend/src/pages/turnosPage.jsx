@@ -38,13 +38,14 @@ const TurnosPage = () => {
     }
   }, [turnos]);
 
+  // Agrupar turnos por día, solo mostrando los que tienen cupos disponibles
   const groupTurnosByDay = (turnos) => {
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     let grouped = {};
 
     days.forEach((day) => {
       grouped[day] = turnos
-        .filter((turno) => turno.dia === day)
+        .filter((turno) => turno.dia === day && turno.cuposDisponibles > 0) // Solo turnos con cupos disponibles
         .sort((a, b) => {
           const convertToMinutes = (time) => {
             if (!time) return 0;
@@ -61,7 +62,9 @@ const TurnosPage = () => {
 
   const toggleSelectTurno = (turnoId) => {
     setSelectedTurnos((prevSelected) =>
-      prevSelected.includes(turnoId) ? prevSelected.filter((id) => id !== turnoId) : [...prevSelected, turnoId]
+      prevSelected.includes(turnoId)
+        ? prevSelected.filter((id) => id !== turnoId)
+        : [...prevSelected, turnoId]
     );
   };
 

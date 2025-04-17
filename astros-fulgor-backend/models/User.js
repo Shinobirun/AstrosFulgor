@@ -8,12 +8,16 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    role: { type: String, enum: ['Admin', 'Profesor', 'Avanzado', 'Intermedio', 'Principiante'], required: true },
-    turnosTomados: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Turno' }],
+    role: { type: String, enum: ['Admin', 'Profesor', 'Violeta', 'Azul', 'Blanco'], required: true },
+    
+    // 🔄 Nuevos campos
+    turnosActuales: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TurnoActual' }],
+    turnosMensuales: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TurnoMensual' }],
+    
     creditos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Credito' }],
     activo: { type: Boolean, default: true },
   },
-  { timestamps: true }  // Esto agrega createdAt y updatedAt automáticamente
+  { timestamps: true }
 );
 
 // Comparar contraseñas

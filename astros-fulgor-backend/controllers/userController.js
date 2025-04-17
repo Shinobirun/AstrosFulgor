@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const Credito= require ('../models/creditos');
+const Credito = require('../models/creditos');
 
 // Generar un token JWT
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -14,7 +14,6 @@ const registerUser = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
-      // Reactivar usuario desactivado
       if (!user.activo) {
         user.activo = true;
         user.password = password ? await bcrypt.hash(password, 10) : user.password;
@@ -24,7 +23,6 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'El usuario ya está registrado y activo.' });
     }
 
-    // Crear un nuevo usuario
     user = await User.create({
       username,
       email,
@@ -40,13 +38,12 @@ const registerUser = async (req, res) => {
     for (let i = 0; i < 5; i++) {
       const nuevoCredito = await Credito.create({
         usuario: user._id,
-        venceEn: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 días desde ahora
+        venceEn: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
         usado: false,
       });
       creditos.push(nuevoCredito._id);
     }
 
-    // Asociar los créditos al usuario
     user.creditos = creditos;
     await user.save();
 
@@ -62,34 +59,28 @@ const loginUser = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Buscar usuario por username o email
     const user = await User.findOne({ $or: [{ username }, { email }] });
 
     if (!user) {
       return res.status(401).json({ message: 'Usuario no encontrado' });
     }
 
-  
-
-    // Comparar las contraseñas usando el método matchPassword
     const isPasswordValid = await user.matchPassword(password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    // Verificar si el usuario está activo
     if (!user.activo) {
       return res.status(403).json({ message: 'Usuario desactivado. Contacta al administrador.' });
     }
 
-    // Enviar respuesta con los datos del usuario y el token
     res.json({
       _id: user.id,
       username: user.username,
       email: user.email,
       role: user.role,
-      token: generateToken(user.id),  
+      token: generateToken(user.id),
     });
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
@@ -97,20 +88,23 @@ const loginUser = async (req, res) => {
   }
 };
 
-
 // Obtener perfil del usuario
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate({
-      path: 'turnosTomados',
-      select: 'sede nivel dia hora cuposDisponibles activo expiraEn' // Trae estos campos
-    })
-
-    .populate({
-      path: 'creditos',
-      match: { usado: false, venceEn: { $gt: new Date() } }, // Solo los créditos vigentes y no usados
-      select: '_id createdAt venceEn',
-    });
+    const user = await User.findById(req.user.id)
+      .populate({
+        path: 'turnosActuales',
+        select: 'sede nivel dia hora cuposDisponibles activo expiraEn',
+      })
+      .populate({
+        path: 'turnosMensuales',
+        select: 'sede nivel dias horario cupos',
+      })
+      .populate({
+        path: 'creditos',
+        match: { usado: false, venceEn: { $gt: new Date() } },
+        select: '_id createdAt venceEn',
+      });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -124,13 +118,13 @@ const getUserProfile = async (req, res) => {
       role: user.role,
       email: user.email,
       creditos: user.creditos,
-      turnosTomados: user.turnosTomados, // Ahora mostrará los detalles completos
+      turnosActuales: user.turnosActuales,
+      turnosMensuales: user.turnosMensuales,
       activo: user.activo,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       token: generateToken(user.id),
     });
-
   } catch (error) {
     console.error('Error al obtener perfil de usuario:', error);
     res.status(500).json({ message: 'Error al obtener el perfil del usuario' });
@@ -139,7 +133,7 @@ const getUserProfile = async (req, res) => {
 
 // Actualizar perfil del usuario
 const updateUserProfile = async (req, res) => {
-  const { firstName, lastName, creditos } = req.body;
+  const { firstName, lastName, creditos, turnosActuales, turnosMensuales } = req.body;
 
   try {
     const user = await User.findById(req.user.id);
@@ -150,7 +144,9 @@ const updateUserProfile = async (req, res) => {
 
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
-    if (creditos !== undefined) user.creditos = creditos;
+    if (creditos) user.creditos = creditos;
+    if (turnosActuales) user.turnosActuales = turnosActuales;
+    if (turnosMensuales) user.turnosMensuales = turnosMensuales;
 
     await user.save();
 
@@ -159,10 +155,13 @@ const updateUserProfile = async (req, res) => {
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
-      creditos: user.creditos,
       role: user.role,
+      creditos: user.creditos,
+      turnosActuales: user.turnosActuales,
+      turnosMensuales: user.turnosMensuales,
     });
   } catch (error) {
+    console.error('Error al actualizar perfil de usuario:', error);
     res.status(500).json({ message: 'Error al actualizar perfil de usuario' });
   }
 };
@@ -182,6 +181,7 @@ const desactivarUsuario = async (req, res) => {
 
     res.json({ message: `Usuario ${user.activo ? 'reactivado' : 'desactivado'}`, activo: user.activo });
   } catch (error) {
+    console.error('Error al cambiar estado del usuario:', error);
     res.status(500).json({ message: 'Error al modificar el estado del usuario' });
   }
 };
@@ -189,9 +189,17 @@ const desactivarUsuario = async (req, res) => {
 // Obtener todos los usuarios
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find()
+      .populate('turnosActuales')
+      .populate('turnosMensuales')
+      .populate({
+        path: 'creditos',
+        select: '_id createdAt venceEn usado',
+      });
+
     res.json(users);
   } catch (error) {
+    console.error('Error al obtener usuarios:', error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });
   }
 };

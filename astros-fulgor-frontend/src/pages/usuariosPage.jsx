@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import dayjs from "dayjs";
+import { Helmet } from "react-helmet";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -83,12 +84,37 @@ const UsuariosPage = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:5000/api/turnos/${turnoId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `http://localhost:5000/api/turnos/liberar`,
+        { turnoId, userId: selectedUser._id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      setTurnos((prevTurnos) => prevTurnos.filter((turno) => turno._id !== turnoId));
+      setTurnos((prevTurnos) =>
+        prevTurnos.map((turno) =>
+          turno._id === turnoId
+            ? { ...turno, ocupadoPor: turno.ocupadoPor.filter((uid) => uid !== selectedUser._id) }
+            : turno
+        )
+      );
+
       console.log("Turno liberado correctamente");
+
+      const creditoResponse = await axios.post(
+        `http://localhost:5000/api/creditos`,
+        { usuario: selectedUser._id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      console.log("Crédito creado:", creditoResponse.data);
+  
+      // 4. Actualizar créditos en frontend
+      setCreditos((prevCreditos) => [...prevCreditos, creditoResponse.data.credito]);
+  
     } catch (error) {
       console.error("Error al liberar el turno:", error.response?.data || error.message);
     }
@@ -96,6 +122,12 @@ const UsuariosPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      {/* METADATOS DE LA PÁGINA */}
+      <Helmet>
+        <title>Usuarios | Panel de Administración</title>
+        <meta name="description" content="Listado de usuarios registrados, turnos asignados y créditos disponibles." />
+      </Helmet>
+
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Lista de Usuarios</h2>
       <div className="max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
         {usuarios.length > 0 ? (
@@ -150,7 +182,6 @@ const UsuariosPage = () => {
             )}
           </div>
 
-          {/* Tabla de Créditos */}
           <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
             <h3 className="text-xl font-semibold text-gray-800">Créditos del Usuario</h3>
             {creditos.length > 0 ? (

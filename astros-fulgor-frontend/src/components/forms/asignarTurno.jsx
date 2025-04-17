@@ -29,10 +29,34 @@ const AsignarTurnos = () => {
 
   const obtenerTurnosDisponibles = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/turnos/todos", { headers});
+      const res = await axios.get("http://localhost:5000/api/turnos/todos", { headers });
       setTurnos(res.data);
     } catch (err) {
       console.error("Error al obtener turnos", err);
+    }
+  };
+
+  const obtenerCreditosUsuario = async (usuarioId) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/creditos/usuario/${usuarioId}`, { headers });
+      return res.data; // Suponiendo que la respuesta es un arreglo de créditos
+    } catch (error) {
+      console.error("Error al obtener créditos", error);
+      return [];
+    }
+  };
+
+  const eliminarCreditoMasAntiguo = async (usuarioId) => {
+    try {
+      const creditos = await obtenerCreditosUsuario(usuarioId);
+      if (creditos.length > 0) {
+        // Suponemos que el crédito más antiguo es el primero en el arreglo
+        const creditoMasAntiguo = creditos[0];
+        await axios.delete(`http://localhost:5000/api/creditos/${creditoMasAntiguo._id}`, { headers });
+        console.log("Crédito eliminado", creditoMasAntiguo._id);
+      }
+    } catch (error) {
+      console.error("Error al eliminar crédito", error);
     }
   };
 
@@ -48,6 +72,10 @@ const AsignarTurnos = () => {
         { headers }
       );
       setMensaje({ tipo: "exito", texto: res.data.message });
+
+      // Llamar a la función para eliminar el crédito más antiguo
+      await eliminarCreditoMasAntiguo(usuarioSeleccionado._id);
+
       setConfirmarOtro(true);
       obtenerTurnosDisponibles();
     } catch (error) {
